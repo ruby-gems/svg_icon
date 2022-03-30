@@ -6,6 +6,7 @@ module SvgIcon
 
     attr_accessor :icon
     attr_accessor :default_class
+    attr_accessor :extra_icons_path
 
     def initialize
       @icon = DEFAULT_ICON

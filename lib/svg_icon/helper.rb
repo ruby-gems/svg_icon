@@ -3,7 +3,7 @@ module SvgIcon
     def svg_icon(name, options = {})
       options = options.dup
 
-      icons = SvgIcon.icons
+      icons = SvgIcon.icons_json
       height = icons["height"] || 24
       width = icons["width"] || 24
 
@@ -18,7 +18,7 @@ module SvgIcon
         path = icons["icons"][name]["body"]
         "<svg xmlns='http://www.w3.org/2000/svg' #{icon_html_attributes(options)}>#{path}</svg>".html_safe
       rescue
-        "<svg xmlns='http://www.w3.org/2000/svg' #{icon_html_attributes(options)}><!-- SVG icon file not found: '#{name}' --></svg></svg>".html_safe
+        "<svg xmlns='http://www.w3.org/2000/svg' #{icon_html_attributes(options)}><!-- SVG icon file not found: '#{name}' --></svg>".html_safe
       end
     end
 
