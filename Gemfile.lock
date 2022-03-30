@@ -1,0 +1,21 @@
+PATH
+  remote: .
+  specs:
+    svg_icon (0.1.0)
+      multi_json
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    multi_json (1.15.0)
+    rake (13.0.6)
+
+PLATFORMS
+  x86_64-darwin-18
+
+DEPENDENCIES
+  rake (~> 13.0)
+  svg_icon!
+
+BUNDLED WITH
+   2.2.3
