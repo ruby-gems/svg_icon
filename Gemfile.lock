@@ -46,6 +46,7 @@ PLATFORMS
   x86_64-darwin-18
 
 DEPENDENCIES
+  minitest
   rake (~> 13.0)
   svg_icon!
 
