@@ -41,18 +41,21 @@ module SvgIcon
     SvgIcon.configuration
   end
 
-  def data_path
-    File.join(__dir__, "data", "#{icon}.json")
-  end
-
   def file_data
     @file_data ||= {}
-    @file_data[data_path] ||= begin
-      path = data_path
+    @file_data[icon] ||= begin
+      path = resolve_icon_path
       raise Error, "Icon data file not found: #{path}" unless File.exist?(path)
 
       File.read(path)
     end
+  end
+
+  def resolve_icon_path
+    external = File.join(configuration.icons_path, "#{icon}.json")
+    return external if File.exist?(external)
+
+    File.join(__dir__, "data", "#{icon}.json")
   end
 
   def extra_icons
@@ -83,7 +86,7 @@ module SvgIcon
 
   def merge_extra_icons(base_icons)
     icons_set = base_icons["icons"]
-    raise Error, "Icon data must contain an 'icons' object: #{data_path}" unless icons_set.is_a?(Hash)
+    raise Error, "Icon data must contain an 'icons' object: #{resolve_icon_path}" unless icons_set.is_a?(Hash)
 
     return base_icons if extra_icons.empty?
 

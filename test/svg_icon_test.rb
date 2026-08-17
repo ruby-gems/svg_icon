@@ -78,6 +78,33 @@ class SvgIconTest < Minitest::Test
     end
   end
 
+  def test_default_icons_path_points_to_project_config_dir
+    assert_equal File.join(Dir.pwd, "config", "svg_icons"), SvgIcon.configuration.icons_path
+  end
+
+  def test_icons_loads_from_icons_path_when_present
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "custom.json"), %({"prefix":"custom","icons":{"x":{"body":"1"}}}))
+      SvgIcon.configure { |config| config.icon = "custom"; config.icons_path = dir }
+      assert_equal "custom", SvgIcon.icons["prefix"]
+    end
+  end
+
+  def test_icons_falls_back_to_bundled_data
+    Dir.mktmpdir do |dir|
+      SvgIcon.configure { |config| config.icon = "lucide"; config.icons_path = dir }
+      assert_equal "lucide", SvgIcon.icons["prefix"]
+    end
+  end
+
+  def test_icons_raises_when_file_missing_everywhere
+    Dir.mktmpdir do |dir|
+      SvgIcon.configure { |config| config.icon = "nonexistent"; config.icons_path = dir }
+      error = assert_raises(SvgIcon::Error) { SvgIcon.icons }
+      assert_match(/Icon data file not found/, error.message)
+    end
+  end
+
   private
 
   def with_extra_icons(contents)
