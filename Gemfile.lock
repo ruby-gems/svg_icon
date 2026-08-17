@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    svg_icon (0.1.0)
+    svg_icon (0.3.0)
       activesupport (>= 5.0)
       multi_json
 
