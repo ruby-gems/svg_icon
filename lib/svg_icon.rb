@@ -11,6 +11,8 @@ require "active_support/core_ext/string/output_safety"
 module SvgIcon
   class Error < StandardError; end
 
+  require_relative "svg_icon/fetcher"
+
   extend self
 
   def icons
