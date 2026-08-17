@@ -22,11 +22,10 @@ Or install it yourself as:
 
 Add `svg_icon.rb` in initializers folder
 
-```
-# frozen_string_literal: true
-
+```ruby
 SvgIcon.configure do |config|
-  # config.icon = "bi" # Options are "bi" and "bx"
+  # config.icon = "lucide" # icon set name: "lucide", "bi", "bx", "heroicons", or any fetched set
+  config.icons_path = Rails.root.join("config", "svg_icons") # defaults to "config/svg_icons" under the project root
 
   ##
   # You can set a default class for icon
@@ -39,6 +38,19 @@ add ` include SvgIcon::Helper` to `ApplicationHelper`
 ```erb
 <%= svg_icon("search") %>
 ```
+
+## Fetching icon sets
+
+The gem bundles a few icon sets (lucide, bi, bx, heroicons). To use any other
+[iconify icon set](https://github.com/iconify/icon-sets/tree/master/json), download it into your project:
+
+    $ svg_icon fetch bi
+
+This downloads `bi.json` into `config/svg_icons/`. Set `config.icon = "bi"` to use it —
+the gem looks for `<icon>.json` in `config/svg_icons/` first, then falls back to bundled data.
+
+Commit `config/svg_icons/` to your repository so deploys don't need to re-fetch.
+Re-run `svg_icon fetch <name>` to update an existing set.
 
 ## Development
 
