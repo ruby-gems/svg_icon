@@ -12,6 +12,7 @@ module SvgIcon
   class Error < StandardError; end
 
   require_relative "svg_icon/fetcher"
+  require_relative "svg_icon/cli"
 
   extend self
 

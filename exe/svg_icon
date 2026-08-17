@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "svg_icon"
+require "svg_icon/cli"
+
+exit(SvgIcon::CLI.run(ARGV) || 0)
