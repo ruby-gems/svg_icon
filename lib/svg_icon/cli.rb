@@ -46,7 +46,7 @@ module SvgIcon
     end
 
     def valid_name?(name)
-      !name.nil? && !name.empty? && name =~ /\A[a-z0-9\-_]+\z/
+      !name.nil? && name =~ SvgIcon::Fetcher::NAME_PATTERN
     end
 
     def relative_path(path)

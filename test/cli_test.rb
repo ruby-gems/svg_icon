@@ -17,7 +17,7 @@ class CliTest < Minitest::Test
     end
     yield
   ensure
-    SvgIcon::Fetcher.singleton_class.send(:define_method, :new, original)
+    SvgIcon::Fetcher.singleton_class.send(:define_method, :new, &original)
   end
 
   def test_fetch_downloads_into_icons_path
@@ -58,6 +58,17 @@ class CliTest < Minitest::Test
         assert_equal 1, error.status
       end
       assert_includes err, "boom"
+    end
+  end
+
+  def test_fetch_handles_unexpected_errors
+    with_stubbed_fetcher(-> { raise RuntimeError, "kaboom" }) do
+      _, err = capture_io do
+        error = assert_raises(SystemExit) { SvgIcon::CLI.run(["fetch", "bi"]) }
+        assert_equal 1, error.status
+      end
+      assert_includes err, "Error:"
+      assert_includes err, "kaboom"
     end
   end
 
