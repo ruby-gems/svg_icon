@@ -21,12 +21,26 @@ class FetcherTest < Minitest::Test
     end
   end
 
+  class RaisingHttp
+    def initialize(error)
+      @error = error
+    end
+
+    def get_response(_uri)
+      raise @error
+    end
+  end
+
   def setup
     @dir = Dir.mktmpdir
   end
 
   def teardown
     FileUtils.remove_entry(@dir)
+  end
+
+  def temp_files
+    Dir.glob(File.join(@dir, ".*.tmp*"))
   end
 
   def test_fetch_downloads_and_writes_file
@@ -88,6 +102,51 @@ class FetcherTest < Minitest::Test
     assert_raises(SvgIcon::FetchError) { SvgIcon::Fetcher.new(http: http).fetch("bi", destination) }
 
     refute File.exist?(destination)
-    assert_empty Dir.glob(File.join(@dir, "*.tmp*"))
+    assert_empty temp_files
+  end
+
+  def test_fetch_rejects_invalid_names
+    http = FakeHttp.new("200", %({"icons":{"x":{"body":"1"}}}))
+    fetcher = SvgIcon::Fetcher.new(http: http)
+
+    ["../evil", "bad/name", "bad name", "Bad", "bi.json"].each do |name|
+      error = assert_raises(SvgIcon::FetchError) do
+        fetcher.fetch(name, File.join(@dir, "out.json"))
+      end
+      assert_match(/Invalid icon set name/, error.message)
+    end
+
+    assert_empty http.requests
+  end
+
+  def test_fetch_allows_dash_underscore_digit_names
+    http = FakeHttp.new("200", %({"icons":{"x":{"body":"1"}}}))
+    SvgIcon::Fetcher.new(http: http).fetch("my-set_2", File.join(@dir, "out.json"))
+
+    assert_equal "https://raw.githubusercontent.com/iconify/icon-sets/master/json/my-set_2.json", http.requests.first.to_s
+  end
+
+  def test_rename_failure_cleans_up_temp_file
+    http = FakeHttp.new("200", %({"icons":{"x":{"body":"1"}}}))
+    destination = File.join(@dir, "blocked")
+    Dir.mkdir(destination)
+
+    assert_raises(SystemCallError) do
+      SvgIcon::Fetcher.new(http: http).fetch("bi", destination)
+    end
+
+    assert_empty temp_files
+    assert File.directory?(destination)
+    assert_empty Dir.glob(File.join(destination, "*"))
+  end
+
+  def test_fetch_wraps_network_errors
+    [SocketError, Errno::ECONNREFUSED, OpenSSL::SSL::SSLError].each do |error_class|
+      error = assert_raises(SvgIcon::FetchError) do
+        SvgIcon::Fetcher.new(http: RaisingHttp.new(error_class.new("boom"))).fetch("bi", File.join(@dir, "bi.json"))
+      end
+      assert_match(/Failed to fetch bi/, error.message)
+      assert_match(/boom/, error.message)
+    end
   end
 end
