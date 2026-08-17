@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "fetcher"
+
 module SvgIcon
   class CLI
     def self.run(argv)

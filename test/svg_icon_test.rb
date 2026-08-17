@@ -105,6 +105,19 @@ class SvgIconTest < Minitest::Test
     end
   end
 
+  def test_re_fetch_reloads_external_icon_set
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "custom.json")
+      File.write(path, %({"prefix":"one","icons":{"x":{"body":"1"}}}))
+      SvgIcon.configure { |config| config.icon = "custom"; config.icons_path = dir }
+      assert_equal "one", SvgIcon.icons["prefix"]
+
+      File.write(path, %({"prefix":"two","icons":{"x":{"body":"2"}}}))
+      File.utime(Time.now + 10, Time.now + 10, path)
+      assert_equal "two", SvgIcon.icons["prefix"]
+    end
+  end
+
   private
 
   def with_extra_icons(contents)

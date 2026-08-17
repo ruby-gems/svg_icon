@@ -63,6 +63,16 @@ class FetcherTest < Minitest::Test
     assert_equal %({"icons":{"x":{"body":"1"}}}), File.read(destination)
   end
 
+  def test_fetch_overwrites_existing_destination
+    destination = File.join(@dir, "bi.json")
+    first = %({"prefix":"bi","icons":{"search":{"body":"<path/>"}}})
+
+    SvgIcon::Fetcher.new(http: FakeHttp.new("200", first)).fetch("bi", destination)
+    SvgIcon::Fetcher.new(http: FakeHttp.new("200", %({"icons":{"x":{"body":"2"}}}))).fetch("bi", destination)
+
+    assert_equal %({"icons":{"x":{"body":"2"}}}), File.read(destination)
+  end
+
   def test_fetch_uses_custom_base_url
     http = FakeHttp.new("200", %({"icons":{"x":{"body":"1"}}}))
     SvgIcon::Fetcher.new(base_url: "https://example.com/sets", http: http).fetch("bi", File.join(@dir, "out.json"))

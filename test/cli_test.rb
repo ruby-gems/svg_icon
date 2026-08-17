@@ -10,6 +10,8 @@ class CliTest < Minitest::Test
     end
   end
 
+  # Minitest 6 dropped minitest/mock (Object#stub), so stub manually and restore
+  # with define_method(:new, &original) to stay Ruby 2.3-compatible (gemspec floor).
   def with_stubbed_fetcher(stub)
     original = SvgIcon::Fetcher.method(:new)
     SvgIcon::Fetcher.singleton_class.send(:define_method, :new) do |*args, &blk|

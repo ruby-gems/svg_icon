@@ -18,7 +18,7 @@ module SvgIcon
 
   def icons
     @icons ||= {}
-    @icons[icon] ||= MultiJson.load(file_data)
+    @icons[file_cache_key_for(resolve_icon_path)] ||= MultiJson.load(file_data)
   end
 
   def icons_json
@@ -46,9 +46,9 @@ module SvgIcon
 
   def file_data
     @file_data ||= {}
-    @file_data[icon] ||= begin
+    @file_data[file_cache_key_for(resolve_icon_path)] ||= begin
       path = resolve_icon_path
-      raise Error, "Icon data file not found: #{path}" unless File.exist?(path)
+      raise Error, "Icon data file not found: #{icon} (looked in #{configuration.icons_path} and bundled data)" unless File.exist?(path)
 
       File.read(path)
     end
@@ -61,11 +61,17 @@ module SvgIcon
     File.join(__dir__, "data", "#{icon}.json")
   end
 
+  def file_cache_key_for(path)
+    return nil unless path
+
+    "#{path}:#{File.exist?(path) ? File.mtime(path).to_i : nil}"
+  end
+
   def extra_icons
     return {} unless configuration.extra_icons_path
 
     @extra_icons ||= {}
-    @extra_icons[extra_path] ||= begin
+    @extra_icons[file_cache_key_for(extra_path)] ||= begin
       data = MultiJson.load(extra_file_data)
       raise Error, "Extra icons file must contain a JSON object: #{extra_path}" unless data.is_a?(Hash)
 
@@ -79,7 +85,7 @@ module SvgIcon
 
   def extra_file_data
     @extra_file_data ||= {}
-    @extra_file_data[extra_path] ||= begin
+    @extra_file_data[file_cache_key_for(extra_path)] ||= begin
       path = extra_path
       raise Error, "Extra icons file not found: #{path}" unless File.exist?(path)
 
@@ -99,6 +105,6 @@ module SvgIcon
   end
 
   def cache_key
-    "#{icon}:#{extra_path}"
+    "#{icon}:#{file_cache_key_for(resolve_icon_path)}:#{file_cache_key_for(extra_path)}"
   end
 end
