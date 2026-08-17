@@ -59,7 +59,7 @@ module SvgIcon
 
   class Fetcher
     def initialize(base_url: DEFAULT_BASE_URL, http: Net::HTTP, ...)
-    def fetch(name, destination)
+    def fetch(name, destination) # destination 是完整目标文件路径(含文件名),由调用方组装
     # 返回 bool/抛出 FetchError
   end
 end
