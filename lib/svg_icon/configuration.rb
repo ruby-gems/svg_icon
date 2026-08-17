@@ -2,7 +2,7 @@
 
 module SvgIcon
   class Configuration
-    DEFAULT_ICON = "bi"
+    DEFAULT_ICON = "lucide"
 
     attr_accessor :icon
     attr_accessor :default_class
@@ -23,5 +23,6 @@ module SvgIcon
 
   def self.configure
     yield configuration
+    SvgIcon.clear_cache!
   end
 end

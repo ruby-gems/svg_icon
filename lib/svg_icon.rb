@@ -5,50 +5,94 @@ require_relative "svg_icon/helper"
 require_relative "svg_icon/version"
 
 require "multi_json"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/string/output_safety"
 
 module SvgIcon
   class Error < StandardError; end
 
   extend self
 
-  def extra_file_data
-    extra_data_path = SvgIcon.configuration.extra_icons_path
-    return nil if extra_data_path.nil?
-    @extra_file_data ||= File.read(extra_data_path)
-  end
-
-  def extra_icons
-    return {} if extra_file_data.nil?
-    @extra_icons ||= MultiJson.load(extra_file_data)
-  end
-
-  # def file_data
-  #   icons_data_path = SvgIcon.configuration.icons_data_path
-
-  #   icons_path = if icons_data_path.present?
-  #     File.join(icons_data_path)
-  #   else
-  #     File.join(__dir__, "data/#{SvgIcon.configuration.icon}.json")
-  #   end
-  #   @file_data ||= File.read(icons_path)
-  # end
-
-  def file_data
-    icons_path = File.join(__dir__, "data/#{SvgIcon.configuration.icon}.json")
-    @file_data ||= File.read(icons_path)
-  end
-
   def icons
-    @icons ||= MultiJson.load(file_data)
+    @icons ||= {}
+    @icons[icon] ||= MultiJson.load(file_data)
   end
 
   def icons_json
-    @icons_json ||= if extra_icons
-      puts "icons_json"
-      icons["icons"] = icons["icons"].merge(extra_icons)
-      icons
-    else
-      icons
+    @icons_json ||= {}
+    @icons_json[cache_key] ||= merge_extra_icons(icons)
+  end
+
+  def clear_cache!
+    @file_data = nil
+    @icons = nil
+    @icons_json = nil
+    @extra_file_data = nil
+    @extra_icons = nil
+  end
+
+  private
+
+  def icon
+    configuration.icon
+  end
+
+  def configuration
+    SvgIcon.configuration
+  end
+
+  def data_path
+    File.join(__dir__, "data", "#{icon}.json")
+  end
+
+  def file_data
+    @file_data ||= {}
+    @file_data[data_path] ||= begin
+      path = data_path
+      raise Error, "Icon data file not found: #{path}" unless File.exist?(path)
+
+      File.read(path)
     end
+  end
+
+  def extra_icons
+    return {} unless configuration.extra_icons_path
+
+    @extra_icons ||= {}
+    @extra_icons[extra_path] ||= begin
+      data = MultiJson.load(extra_file_data)
+      raise Error, "Extra icons file must contain a JSON object: #{extra_path}" unless data.is_a?(Hash)
+
+      data
+    end
+  end
+
+  def extra_path
+    configuration.extra_icons_path
+  end
+
+  def extra_file_data
+    @extra_file_data ||= {}
+    @extra_file_data[extra_path] ||= begin
+      path = extra_path
+      raise Error, "Extra icons file not found: #{path}" unless File.exist?(path)
+
+      File.read(path)
+    end
+  end
+
+  def merge_extra_icons(base_icons)
+    icons_set = base_icons["icons"]
+    raise Error, "Icon data must contain an 'icons' object: #{data_path}" unless icons_set.is_a?(Hash)
+
+    return base_icons if extra_icons.empty?
+
+    merged = base_icons.dup
+    merged["icons"] = icons_set.merge(extra_icons)
+    merged
+  end
+
+  def cache_key
+    "#{icon}:#{extra_path}"
   end
 end
